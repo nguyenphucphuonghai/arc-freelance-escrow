@@ -2,11 +2,18 @@
 pragma solidity ^0.8.20;
 
 interface IERC20 {
+    /// @notice transferFrom - core operation
     function transferFrom(address from, address to, uint256 amount) external returns (bool);
     function transfer(address to, uint256 amount) external returns (bool);
 }
 
+/// @title FreelanceEscrow
+/// @notice Core contract for FreelanceEscrow on Arc Network
+/// @dev Built with Foundry, deployed on Arc testnet (Chain ID: 5042002)
 contract FreelanceEscrow {
+    /// @notice Contract version
+    string public constant VERSION = "1.1.0";
+
     IERC20 public immutable usdc;
 
     struct Job {
@@ -29,6 +36,7 @@ contract FreelanceEscrow {
         usdc = IERC20(_usdc);
     }
 
+    /// @notice createJob - core operation
     function createJob(address freelancer, uint256 totalAmount, uint256 milestones) external returns (uint256) {
         require(freelancer != address(0) && totalAmount > 0 && milestones > 0, "BAD_PARAMS");
         require(usdc.transferFrom(msg.sender, address(this), totalAmount), "DEPOSIT_FAILED");
@@ -37,6 +45,7 @@ contract FreelanceEscrow {
         return jobs.length - 1;
     }
 
+    /// @notice approveMilestone - core operation
     function approveMilestone(uint256 id) external {
         Job storage j = jobs[id];
         require(msg.sender == j.client && !j.cancelled, "CANNOT");
@@ -48,6 +57,7 @@ contract FreelanceEscrow {
         emit MilestoneApproved(id, j.milestonesApproved, payout);
     }
 
+    /// @notice cancel - core operation
     function cancel(uint256 id) external {
         Job storage j = jobs[id];
         require(msg.sender == j.client && !j.cancelled, "CANNOT");
